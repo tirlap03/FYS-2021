@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 
 """1a"""
@@ -44,14 +45,27 @@ print(f"The matrix where songs are rows, and songs features are columns: \n {arr
 arr2 = fdf["label"].to_numpy()
 print(f"The vector containing the labels: \n {arr2} \n")
 
-# Splitting the dataset
-split = int(0.8*len(fdf))
-training = fdf.iloc[:split]
-test = fdf.iloc[split:]
 
-print(f"training: \n {training}\n")
-print(f"test: \n {test}\n")
+# splitte lables, splitte hver label 80:20, tilslutt merge 80 med 20 og 20 med 80
 
+# We were told that using SKlearn for train_test_split was allowed.
+
+# Separating the labels and storing in new variables
+X = fdf[fdf["label"]==1]
+y = fdf[fdf["label"]==0]
+ 
+# Splitting the dataset 80/20
+X_train, X_test = train_test_split(X,test_size=0.2, random_state=0)
+y_train, y_test = train_test_split(y, test_size=0.2, random_state=0)
+
+print(f"\nxtrain: 80% of pop\n {X_train} \n\nxtest: 20% of pop \n {X_test} \n")
+print(f"ytrain: 80% of classical \n {y_train} \n\nytest:20% of classical \n {y_test} \n")
+
+# Joining the two test sets and the two training sets
+test_sets = pd.concat((X_test, y_test), axis=0)
+train_sets = pd.concat((X_train, y_train))
+
+print(f"\n test sets 20%: \n {test_sets} \n\ntrain sets 80%: \n {train_sets} \n")
 
 """1d"""
-print(f"\n\nProblem 1d\n")
+# print(f"\n\nProblem 1d\n")
