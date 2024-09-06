@@ -103,7 +103,7 @@ class logistic_classifer ():
                 self.weights = self.weights - self.lr *dw
                 self.bias = self.bias - self.lr*db
 
-            if epoch % 10 == 0:
+            if epoch % 100 == 0:
                 print(f'Epoch {epoch}')
                            
     # Predicting the values of y_train based on the training of X_train
@@ -114,9 +114,6 @@ class logistic_classifer ():
 
         class_pred = [0 if y<=0.5 else 1 for y in y_pred]
         return class_pred
-
-
-
 
 # Returning the percentage of when the prediction matches the training samples.
 def accuracy(y_pred, y_train):
@@ -130,26 +127,17 @@ if __name__=="__main__":
 
     y_pred = log_class.predict_test(X_train)                # Predicting the values of y_train, based on the training of X_train 
     
-    train_acc = accuracy(y_pred, y_train)                         # Calculating the accuracy of the model
-    print(f"The accuracy of the model with the training set is: {train_acc}\n\n")
+    acc = accuracy(y_pred, y_train)                         # Calculating the accuracy of the model
+    print(f"The accuracy of the model is: {acc}\n\n")
 
     """2b"""
     print(f"\n\nProblem 2b\n")
 
-    y_test_pred = log_class.predict_test(X_test)
-    test_acc = accuracy(y_test_pred, y_test)
-    print(f"The accuracy of the model with the training set is: {test_acc}\n\n")
 
+
+    plt.ion()
     plt.figure()
-    plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test_pred, cmap='viridis', marker='o')
-    plt.title("Test Set Predictions")
-    plt.xlabel("Feature 1 (liveness)")
-    plt.ylabel("Feature 2 (loudness)")
-    plt.show(block=True)
-
-    # plt.ion()
-    # plt.figure()
-    # plt.scatter(X_train, y_pred)
+    plt.scatter(X_train, y_pred)
     # plt.show(block=True)
 
 
