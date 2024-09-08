@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-import numdifftools as nd
+import matplotlib.animation as animation 
+import seaborn as sns
 
 """1a"""
 print(f"\n\nProblem 1a\n")
@@ -60,9 +61,8 @@ print(f"The vector containing the labels: \n {labell} \n the shape {labell.shape
 
 X_train, X_test = train_test_split(features, test_size=0.2, random_state=0)         # Splitting the features into 80% train and 20% test
 y_train, y_test = train_test_split(labell, test_size=0.2, random_state=0)           # Splitting the labels into 80% train and 20% test
-print(f"X_train: 80% of the train set \n{X_train}\n X_test: 20% of the train set \n{X_test}\n")
-print(f"y_train: 80% of the test set \n{y_train}\n y_test:20% of the test set \n{y_test}\n")
-print(f"shapes: \nx_tr {X_train.shape}\nx_te {X_test.shape}\ny_tr {y_train.shape}\ny_te {y_test.shape}\n")
+print(f"X_train: 80% of the train set \n{X_train}\nWith the shape {X_train.shape}\n\n X_test: 20% of the train set \n{X_test}\nWith the shape of {X_test.shape}\n\n")
+print(f"y_train: 80% of the test set \n{y_train}\nWith the shape of {y_train.shape}\n\n y_test:20% of the test set \n{y_test}\nWith the shape of {y_test.shape}\n\n")
 
 
 """1d: Bonus"""
@@ -72,25 +72,35 @@ print(f"shapes: \nx_tr {X_train.shape}\nx_te {X_test.shape}\ny_tr {y_train.shape
 
 """2a"""
 print(f"\n\nProblem 2a\n")
+training_errors = [] 
 class logistic_classifer ():
     def __init__(self, lr=0.01, epochs=100, bias=None):
-        self.lr = lr                    #learning rate
-        self.epochs = epochs            # epochs = 10    
+        self.lr = lr                    # learning rate
+        self.epochs = epochs            # epochs = 100    
         self.weights = None             
-        self.bias = None                
-        
+        self.bias = None   
+                  
 
     def zigmoid(self, lin_reg):
         lin_reg = np.clip(lin_reg, -500, 500)       # Clipping the values below and over 500, to avoid overflow
         z = 1/(1+np.exp(-lin_reg))                  # Calculating the sigmoid function    
         return z    
     
+
+    def loss_func(self, pred_y, true_y):
+        L = true_y*np.log10(pred_y) + (1-true_y)*np.log10(1-pred_y)
+        # print(f"The loss is: {L.shape}, the type is {type(L)}\n")
+        return L.mean()
+    
     
     def SGD(self, X_train, y_train):
         self.bias = 0                               # Initializing the bias as 0
         samples, features = X_train.shape           # Initializing the number of samples and features as the rows and columns of the matrix
         self.weights = np.zeros(features)           # Initializing the weights as 0 (as many as there are features, here there is two)
+        
         for epoch in range(self.epochs):
+            if epoch % 10 == 0:
+                print(f"You are on epoch number {epoch}\n")
             for i in range(len(X_train)):             
                 lin_pred = np.dot(X_train, self.weights) + self.bias        # Calculating the predictions of the linear regression
                 predictions = self.zigmoid(lin_pred)                        # Calculating the actual predictions, which is the sigmoid function
@@ -102,9 +112,9 @@ class logistic_classifer ():
                 # Calculating gradient, and updating the weights
                 self.weights = self.weights - self.lr *dw
                 self.bias = self.bias - self.lr*db
-
-            if epoch % 10 == 0:
-                print(f'Epoch {epoch}')
+                
+            loss = self.loss_func(predictions, lin_pred)
+            training_errors.append(np.sum(loss) / samples)
                            
     # Predicting the values of y_train based on the training of X_train
     def predict_test(self, X_train):
@@ -115,6 +125,49 @@ class logistic_classifer ():
         class_pred = [0 if y<=0.5 else 1 for y in y_pred]
         return class_pred
 
+# Plotting the training error as a function of epochs
+def training_errorVSepochs(epochs, training_errors):
+    # plt.plot(np.arange(epochs), training_errors)
+    # plt.xlabel('Epochs')
+    # plt.ylabel('Average Training Error')
+    # plt.title('Training Error vs. Epochs')
+    # plt.grid(True)
+
+    plt.plot(range(epochs), training_errors, label='Training Error')
+    plt.xlabel('Epoch')
+    plt.ylabel('Error')
+    plt.title('Training Error per Epoch')
+    plt.legend()
+
+    plt.savefig('traning_errorVSEpochs.png')
+    plt.show(block=True)
+
+def sigmoid_3D_plot(log_class):
+    # Generate a grid of values for two features
+    x = np.linspace(-10, 10, 100)
+    y = np.linspace(-10, 10, 100)
+    X, Y = np.meshgrid(x, y)
+
+    # Compute the linear combination z = w1*x + w2*y + b using the learned weights and bias
+    Z = log_class.weights[0] * X + log_class.weights[1] * Y + log_class.bias
+    
+    # Apply the sigmoid function to the linear combination
+    Z_sig = log_class.zigmoid(Z)
+    
+    # Create a 3D plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot the surface
+    ax.plot_surface(X, Y, Z_sig, cmap='viridis')
+
+    # Set labels and title
+    ax.set_xlabel('Feature 1')
+    ax.set_ylabel('Feature 2')
+    ax.set_zlabel('Sigmoid Output')
+    ax.set_title('3D Sigmoid Function (S-curve)')
+    plt.savefig('3D_sigmoid.png')
+    plt.show(block=True)
 
 
 
@@ -122,15 +175,32 @@ class logistic_classifer ():
 def accuracy(y_pred, y_train):
     return np.sum(y_pred == y_train)/len(y_train)
 
+def plot_confusion_matrix(cm):
+    plt.figure(figsize=(6,6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
+    plt.xlabel('False Positive      True Negative')
+    plt.ylabel('Confusion Matrix')
+    plt.title('True Positive        False Negative')
+    plt.savefig('confusion_matrix.png')
+    plt.show(block=True)
+
+def confusion_matrix_accuracy(cm):
+    # Extract values from the confusion matrix
+    TN, FP, FN, TP = cm.ravel()
+    
+    # Calculate accuracy
+    accuracy = (TP + TN) / (TP + TN + FP + FN)
+    return accuracy
+
 
 if __name__=="__main__":
     log_class = logistic_classifer()
     log_class.SGD(X_train, y_train)                         # Training the dataset 
 
 
-    y_pred = log_class.predict_test(X_train)                # Predicting the values of y_train, based on the training of X_train 
+    y_train_pred = log_class.predict_test(X_train)                # Predicting the values of y_train, based on the training of X_train 
     
-    train_acc = accuracy(y_pred, y_train)                         # Calculating the accuracy of the model
+    train_acc = accuracy(y_train_pred, y_train)                         # Calculating the accuracy of the model
     print(f"The accuracy of the model with the training set is: {train_acc}\n\n")
 
     """2b"""
@@ -138,24 +208,24 @@ if __name__=="__main__":
 
     y_test_pred = log_class.predict_test(X_test)
     test_acc = accuracy(y_test_pred, y_test)
-    print(f"The accuracy of the model with the training set is: {test_acc}\n\n")
+    print(f"The accuracy of the model with the test set is: {test_acc}\n\n")
 
-    plt.figure()
-    plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test_pred, cmap='viridis', marker='o')
-    plt.title("Test Set Predictions")
-    plt.xlabel("Feature 1 (liveness)")
-    plt.ylabel("Feature 2 (loudness)")
-    plt.show(block=True)
+    
+    training_errorVSepochs(log_class.epochs, training_errors)
+    # sigmoid_3D_plot(log_class)
 
-    # plt.ion()
-    # plt.figure()
-    # plt.scatter(X_train, y_pred)
-    # plt.show(block=True)
+    
+    """2c: Bonus"""
+    # print(f"\n\nProblem 2c\n")
 
 
+    """3a"""
+    print(f"\n\nProblem 3a\n")
 
+    cm_te = confusion_matrix(y_test, y_test_pred)
+    print(f"Confusion matrix of the test set: \n{cm_te}\n")
 
+    cm_te_acc = confusion_matrix_accuracy(cm_te)
+    print(f"The accuracy of the test_set confusion matrix is {cm_te_acc}\n")
 
-
-"""2c: Bonus"""
-# print(f"\n\nProblem 2c\n")
+    plot_confusion_matrix(cm_te)
