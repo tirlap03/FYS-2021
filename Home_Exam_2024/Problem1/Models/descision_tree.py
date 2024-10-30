@@ -42,6 +42,14 @@ class DecisionTreeClassifier:
         n_samples, n_features = X.shape
         n_labels = len(np.unique(y))
 
+        # Check for empty data
+        if n_samples == 0:
+            return Node(value=0)  # Return default class
+            
+        # Check if all samples belong to the same class
+        if len(np.unique(y)) == 1:
+            return Node(value=y[0])
+
         # Stopping criteria
         if (self.max_depth is not None and depth >= self.max_depth) or n_samples < self.min_samples_split or n_labels == 1:
             return Node(value=self._most_common_label(y))
@@ -122,6 +130,8 @@ class DecisionTreeClassifier:
         return 1 - np.sum(proportions ** 2)
 
     def _most_common_label(self, y):
+        if len(y) == 0:
+            return 0  # Return default class (0) if empty
         return np.bincount(y).argmax()
 
     def predict(self, X):
@@ -139,14 +149,19 @@ class DecisionTreeClassifier:
 
 def main_dt():
     # Firstly, load and process data
-    X_scaled, y, X_test_scaled, test_ids = load_and_preprocess_data()
+    X, y, X_test, test_ids = load_and_preprocess_data(None)
+
+    if isinstance(X, pd.DataFrame):
+        X = X.to_numpy()
+    if isinstance(X_test, pd.DataFrame):
+        X_test = X_test.to_numpy()
 
     # Secondly, finding the best hyperparameters through cross-validation
-    best_params = perform_cross_validation(X_scaled, y, DecisionTreeClassifier)
+    best_params = perform_cross_validation(X, y, DecisionTreeClassifier)
 
     # Thirdly, Train and evaluate the model on validation set
     print("\nTraining and avlauating model ...")
-    X_train, X_val, y_train, y_val = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
     model = DecisionTreeClassifier(
         max_depth=best_params['depth'],
         min_samples_split=best_params['min_samples'],
@@ -162,11 +177,9 @@ def main_dt():
         min_samples_split=best_params['min_samples'],
         max_features='sqrt'
     )
-    final_model.fit(X_scaled, y)
+    final_model.fit(X, y)
 
-    test_predictions = final_model.predict(X_test_scaled)
+    test_predictions = final_model.predict(X_test)
 
     create_submission(test_predictions, test_ids)
 
-# if __name__ == "__main__":
-#     main_dt()
