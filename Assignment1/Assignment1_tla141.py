@@ -115,7 +115,7 @@ class logistic_classifer ():
                 
             loss = self.loss_func(predictions, lin_pred)
             training_errors.append(np.sum(loss) / samples)
-                           
+                            
     # Predicting the values of y_train based on the training of X_train
     def predict_test(self, X_train):
         linear_pred = np.dot(X_train, self.weights) + self.bias

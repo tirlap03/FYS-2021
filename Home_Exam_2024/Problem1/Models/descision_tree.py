@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from preprocessing import load_and_preprocess_data, perform_cross_validation, evaluate_model
+from preprocessing import load_and_preprocess_data, perform_cross_validation
 from utils import create_submission
 
 
@@ -146,7 +146,6 @@ class DecisionTreeClassifier:
         return self._traverse_tree(x, node.right)
 
 
-
 def main_dt():
     # Firstly, load and process data
     X, y, X_test, test_ids = load_and_preprocess_data(None)
@@ -168,8 +167,6 @@ def main_dt():
         max_features='sqrt'
     )
     model.fit(X_train, y_train)
-
-    y_val_pred = evaluate_model(model, X_val, y_val)
 
     print("\nTraining final model on full dataset ...")
     final_model = DecisionTreeClassifier(

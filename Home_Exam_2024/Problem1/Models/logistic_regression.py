@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from preprocessing import load_and_preprocess_data, evaluate_model
+from preprocessing import load_and_preprocess_data
 from utils import create_submission
 
 
@@ -56,8 +56,7 @@ class LogisticClassifier ():
 def hyperparameter_tuning(X, y):
     print("Tuning the hyperparameters of Logistic Regression ...")
 
-
-    learning_rates = [0.0001, 0.001, 0.01, 0.1, 0.5]
+    learning_rates = [0.001, 0.01, 0.1]
     epochs = [10000, 50000, 100000]
 
     best_params = {
@@ -93,7 +92,7 @@ def hyperparameter_tuning(X, y):
 
 
 def main_lr():
-    X_scaled, y, X_test_scaled, test_ids = load_and_preprocess_data('robust')
+    X_scaled, y, X_test_scaled, test_ids = load_and_preprocess_data(None)
 
     best_params = hyperparameter_tuning(X_scaled, y)
 
@@ -107,7 +106,6 @@ def main_lr():
     model.SGD(X_train, y_train)
 
     y_val_pred = model.predict(X_test)
-    evaluate_model(model, X_test, y_test)
 
     print("\nTraining the final model ...")
     final_model = LogisticClassifier(

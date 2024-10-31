@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 
-def create_submission(test_predictions, test_ids, filename='submission_rf_cross2.csv'):
+def create_submission(test_predictions, test_ids, filename='submission_lr_noscal2.csv'):
     try:
         filepath = os.path.join('Results', filename)
 

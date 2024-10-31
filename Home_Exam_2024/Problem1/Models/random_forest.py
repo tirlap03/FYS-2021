@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from Models.descision_tree import DecisionTreeClassifier
-from preprocessing import load_and_preprocess_data, evaluate_model, perform_rf_cross_validation
+from preprocessing import load_and_preprocess_data, evaluate_model, perform_cross_validation_rf
 from utils import create_submission
 from sklearn.model_selection import train_test_split
 # from imblearn.over_sampling import SMOTE
@@ -166,8 +166,6 @@ def main_rf_no_cross():
     )
     rf_model.fit(X_train, y_train)
 
-    print("\nEvaluating model on validation set ...")
-    evaluate_model(rf_model, X_test, y_test)
 
     # Train final model on full dataset
     print("\nTraining final model on full dataset ...")
@@ -192,7 +190,7 @@ def main_rf_cross():
     
     # Find best hyperparameters through cross-validation
     print("\nPerforming cross-validation...")
-    best_params = perform_rf_cross_validation(X_scaled, y, RandomForest)
+    best_params = perform_cross_validation_rf(X_scaled, y, RandomForest)
     
     # Split data for final validation
     print("\nSplitting data for validation...")
@@ -210,8 +208,6 @@ def main_rf_cross():
         class_weights='balanced'
     )
     model.fit(X_train, y_train)
-    
-    evaluate_model(model, X_val, y_val)
     
     # Train final model on full dataset
     print("\nTraining final model on full dataset...")
